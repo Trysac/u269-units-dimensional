@@ -19,6 +19,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+units-dimensional = "units_dimensional.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/Trysac/u269-units-dimensional"
 Source = "https://github.com/Trysac/u269-units-dimensional"

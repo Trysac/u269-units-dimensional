@@ -3,27 +3,26 @@
 ## Running
 
 ```sh
-uv run pytest --cov=units_dimensional   # tests with coverage report
-uv run python scripts/check.py      # every gate, as CI and the factory run it
+python -m pytest tests/test_units_dimensional.py
 ```
 
 ## Policy
 
-- Branch coverage of `src/units_dimensional` must stay at or above 80 %; the gate fails below it.
-- Tests exercise the public API (`import units_dimensional`) and assert every observable effect:
-  return values, raised exceptions and their messages.
-- Each bug fix starts with a failing test that reproduces it.
-- Tests are deterministic: no network, no wall clock, no dependence on test order.
+The tests exercise the public API (`import units_dimensional`) and the CLI entry point (`units_dimensional.__main__.main` and `python -m units_dimensional`). They assert return values, exception codes and messages, stdout, stderr, and process return codes. No coverage threshold or conformance marker configuration is present in the repository shown.
 
 ## Tiers
 
-- Local tier (every gate run, coverage measured here): unit and property tests, plus conformance on small
-  fixtures kept in the repository.
-- CI tier: conformance that needs an external tool or a download. Mark them `@pytest.mark.conformance`; `scripts/check.py` deselects them locally
-  (unless `FABRICA_CI=1`). The CI `conformance` job sets `FABRICA_CI=1` and runs the full suite. Tools are installed
-  by the optional `ci/conformance-setup.sh` (bash, CI only; verify every download against a pinned SHA-256), and
-  tagged tests skip cleanly when their tool is missing.
+There is a single test tier: the unit tests in `tests/test_units_dimensional.py`. No external-tool or conformance tier exists in the repository shown.
 
 ## Layout
 
-`tests/test_<module>.py` mirrors each public module. Shared fixtures go in `tests/conftest.py`.
+`tests/test_units_dimensional.py` is the only test file. It covers:
+
+- conversion: `1 km/h` to `m/s`, `1 mi` to `km`, `1 lb` to `kg`, `1 N` to `kg*m/s^2`, `3 kW*h` to `MJ`, `1 Pa` to `N/m^2`;
+- dimensions: mismatch (`2 kg` to `m`), `dimension_of('J')`, and the dimensionless unit `1`;
+- parsing: decimal `9.81 m/s^2`, scientific `-3e2 ms`, unknown units `furlong` and `kgg`, malformed division `m//s`, malformed exponent `5 m^`, and missing number `abc`;
+- limits: input longer than 200 characters, exactly 200 characters, exponents `m^13` and `m^-13`, malformed `m^+2` and `m^a`, non-prefixable `kmin`, and numeric exponent `1e999999999`;
+- prefixes and ambiguity: `min`, `mi`, `mm`, `ms`, the micro sign, and `u`;
+- arithmetic edges: `1 m/km` to `1`, `-5 m` to `ft`, `m^-2` to `1/m^2`, and `m/s/s` to `m/s^2`;
+- CLI: `main` success, printed float repr, dimension mismatch on stderr with return 1, missing arguments with return 2, and the `python -m units_dimensional` subprocess;
+- overflow: `Quantity(Fraction(10**400), 'm').to('m')` raises `UnitsError` with code `parse_error`.

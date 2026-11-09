@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added exact dimensional analysis unit conversion with a compact parser, exact Fraction arithmetic, and a CLI.
 - Initial project structure from the factory utility template.
