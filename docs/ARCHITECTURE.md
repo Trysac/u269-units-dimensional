@@ -1,29 +1,13 @@
 # Architecture
 
-## Purpose
+`units_dimensional` is a stdlib-only package for exact unit conversion. Its modules are:
 
-`trysac-units-dimensional` is a small, dependency-free Python library: Parse quantities such as 9.81 m/s^2 and convert them between units with exact dimensional analysis over SI base dimensions
+- `_errors.py` defines `UnitsError` with a `code` literal of `unknown_unit`, `dimension_mismatch`, `parse_error`, or `input_too_large`.
+- `_data.py` holds the immutable dimension order/names, the fixed unit table, the prefix table, the set of prefixable base names, and `format_dimension`.
+- `_parser.py` parses numeric literals into `Fraction` values and unit expressions into `(dimension, scale)` pairs. It uses `re` for numbers and an iterative loop for units.
+- `_convert.py` checks dimension equality, multiplies by the source scale, divides by the target scale, and returns a `float`; overflow raises `UnitsError('parse_error')`.
+- `__init__.py` exposes `Quantity`, `UnitsError`, `convert`, `dimension_of`, `parse_quantity`, and `__version__`.
+- `__main__.py` provides `main(argv)` and the `python -m units_dimensional` entry point.
+- `py.typed` marks the package as typed.
 
-## Shape
-
-```text
-caller code --> units_dimensional (public API in __init__.py)
-                    |
-                    +-- pure functions, no I/O, no global state
-```
-
-- **Public API**: the names listed in `__all__` of `src/units_dimensional/__init__.py`. Anything else is
-  internal and may change without a major version.
-- **Errors**: invalid input raises built-in exceptions (`ValueError`, `TypeError`) with a clear
-  message; the library never prints or exits.
-- **Side effects**: none. If a feature needs I/O, isolate it in its own module behind a small
-  interface and record the choice in an ADR.
-
-## Quality contract
-
-`scripts/check.py` is the single definition of the gates; `fabrica.json` tells the factory and CI
-how to run it. See [TESTING.md](TESTING.md).
-
-## Decisions
-
-Architecture decisions are recorded in [decisions/](decisions/) as numbered ADRs.
+All conversion factors are `fractions.Fraction`, so arithmetic is exact until the final `float()` call. The grammar has no parentheses and `parse_unit` is iterative, so parser depth is fixed. `parse_quantity` limits its text argument to 200 characters; unit exponents are limited to `-12..12`; numeric literal exponents are limited to `-100..100`. Affine temperatures are not supported; `K` is a temperature difference.
